@@ -1,30 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Navbar from "./components/Navbar/Navbar";
-
-/* --- COMPREHENSIVE CURRENCY TO COUNTRY MAP --- */
-const currencyMap = {
-  USD: "US", EUR: "EU", GBP: "GB", INR: "IN", JPY: "JP", CNY: "CN",
-  AUD: "AU", CAD: "CA", SGD: "SG", CHF: "CH", NZD: "NZ", KRW: "KR",
-  ZAR: "ZA", TRY: "TR", RUB: "RU", BRL: "BR", AED: "AE", SAR: "SA",
-  MXN: "MX", IDR: "ID", PKR: "PK", VND: "VN", NGN: "NG", EGP: "EG",
-  THB: "TH", MYR: "MY", PHP: "PH", HKD: "HK", TWD: "TW", SEK: "SE",
-  NOK: "NO", DKK: "DK", PLN: "PL", HUF: "HU", CZK: "CZ", ILS: "IL",
-  CLP: "CL", COP: "CO", ARS: "AR", PEN: "PE", KWD: "KW", QAR: "QA",
-  OMR: "OM", BHD: "BH", JOD: "JO", LBP: "LB", LKR: "LK", BDT: "BD",
-  NPR: "NP", KES: "KE", GHS: "GH", MAD: "MA", DZD: "DZ", TND: "TN",
-  UAH: "UA", RON: "RO", BGN: "BG", HRK: "HR", ISK: "IS", CRC: "CR",
-  UYU: "UY", DOP: "DO", GTQ: "GT", HNL: "HN", NIO: "NI", PAB: "PA",
-  BOB: "BO", PYG: "PY", VEF: "VE", IQD: "IQ", IRR: "IR", SYP: "SY",
-  YER: "YE", AFN: "AF", MMK: "MM", KHP: "KH", LAK: "LA", MNT: "MN",
-  BND: "BN", MVR: "MV", BTN: "BT", KZT: "KZ", UZS: "UZ", TMT: "TM",
-  KGZ: "KG", TJS: "TJ", GEL: "GE", AMD: "AM", AZN: "AZ", BYN: "BY",
-  MDL: "MD", RSD: "RS", MKD: "MK", ALL: "AL", BAM: "BA", MUR: "MU",
-  SCR: "SC", MGA: "MG", ETB: "ET", TZS: "TZ", UGX: "UG", RWF: "RW",
-  BIF: "BI", ZMW: "ZM", MWK: "MW", MZN: "MZ", AOA: "AO", NAD: "NA",
-  BWP: "BW", SZL: "SZ", LSL: "LS", XOF: "SN", XAF: "CM", CDF: "CD",
-  GNF: "GN", SLL: "SL", LRD: "LR", GMD: "GM", CVE: "CV", DJF: "DJ",
-  SOS: "SO", SDG: "SD", SSP: "SS", ERN: "ER", LYD: "LY",
-};
+import { currencies, currencyList, getFlag } from "./currencies";
+import "./App.css";
 
 export default function App() {
   const [from, setFrom] = useState("USD");
@@ -39,34 +16,46 @@ export default function App() {
   const [modalType, setModalType] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const getFlag = (code) => {
-    const countryCode = currencyMap[code] || code.substring(0, 2);
-    return `https://flagsapi.com/${countryCode}/flat/64.png`;
-  };
+  const filteredCurrencies = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return currencyList;
+    return currencyList.filter(
+      (item) =>
+        item.code.toLowerCase().includes(q) ||
+        item.name.toLowerCase().includes(q) ||
+        item.country.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
 
   useEffect(() => {
     handleConvert();
   }, []);
 
   async function handleConvert(source = from, target = to, value = amount) {
-    const amt = parseFloat(value);
+    const src = typeof source === "string" ? source : from;
+    const tgt = typeof target === "string" ? target : to;
+    const rawVal = typeof value === "string" || typeof value === "number" ? value : amount;
+    const amt = parseFloat(rawVal);
     if (!amt || amt <= 0) {
       setResult(null);
+      setError("");
       return;
     }
 
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`https://open.er-api.com/v6/latest/${source}`);
+      const res = await fetch(`https://open.er-api.com/v6/latest/${src}`);
       if (!res.ok) throw new Error("The exchange rate service is unavailable.");
       const data = await res.json();
-      const fetchedRate = data.rates?.[target];
+      const fetchedRate = data.rates?.[tgt];
       if (!fetchedRate) throw new Error("A rate for this currency pair is not available.");
       setResult(fetchedRate * amt);
       setLastUpdated(new Date().toISOString());
     } catch (err) {
       console.error("API Error:", err);
+      setResult(null);
+      setLastUpdated(null);
       setError(err instanceof Error ? err.message : "Unable to retrieve the exchange rate.");
     } finally {
       setLoading(false);
@@ -99,14 +88,14 @@ export default function App() {
       <Navbar />
 
       {/* --- MAIN BACKGROUND CONTAINER --- */}
-      <div className="app-shell pt-24 min-h-screen flex flex-col text-white">
+      <div className="app-shell pt-16 sm:pt-20 md:pt-24 min-h-screen flex flex-col text-white">
 
         {/* --- CONTENT WRAPPER --- */}
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="app-layout w-full max-w-5xl grid grid-cols-1 md:grid-cols-[1fr_420px] gap-8 relative">
+        <div className="flex-1 flex items-center justify-center px-3.5 py-2 sm:px-6 sm:py-6">
+          <div className="app-layout w-full max-w-5xl grid grid-cols-1 md:grid-cols-[1fr_420px] gap-6 md:gap-8 relative">
 
-            {/* LEFT SECTION */}
-            <div className="hero-panel p-8 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col justify-center relative overflow-hidden">
+            {/* LEFT / HERO SECTION (2nd on mobile, 1st on desktop) */}
+            <div className="hero-panel order-2 md:order-1 p-5 sm:p-8 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col justify-center relative overflow-hidden">
               <div className="hero-glow absolute -top-20 -left-20 w-40 h-40 rounded-full blur-3xl"></div>
               <div className="hero-content">
                 <div className="eyebrow"><span className="eyebrow-dot" /> Currency, without the guesswork</div>
@@ -126,8 +115,8 @@ export default function App() {
               </div>
             </div>
 
-            {/* RIGHT SECTION */}
-            <aside className="converter-panel p-6 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col gap-6 relative z-20">
+            {/* RIGHT / CONVERTER SECTION (1st on mobile, 2nd on desktop) */}
+            <aside className="converter-panel order-1 md:order-2 p-5 sm:p-6 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col gap-5 sm:gap-6 relative z-20">
               
               <div className="flex justify-between items-center border-b border-white/10 pb-4">
                 <div>
@@ -136,7 +125,7 @@ export default function App() {
                 </div>
                 <div className="live-status flex items-center gap-2 text-xs text-slate-400 bg-black/20 px-3 py-1 rounded-full border border-white/5">
                   <div className={`w-2 h-2 rounded-full ${lastUpdated ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                  {loading ? "Updating" : lastUpdated ? "Live rates" : error ? "Unavailable" : "Connecting"}
+                  {loading ? "Updating" : error ? "Unavailable" : lastUpdated ? "Live rates" : "Connecting"}
                 </div>
               </div>
 
@@ -196,7 +185,7 @@ export default function App() {
               {error && <p className="conversion-error" role="alert">{error}</p>}
 
               <button
-                onClick={handleConvert}
+                onClick={() => handleConvert()}
                 className="convert-button w-full py-4 rounded-xl bg-white text-indigo-900 font-bold text-lg shadow-lg shadow-white/10 hover:bg-slate-200 transition-all active:scale-95 flex items-center justify-center gap-2"
                 disabled={loading}
               >
@@ -232,56 +221,115 @@ export default function App() {
 
       {/* --- SEARCH MODAL --- */}
       {modalOpen && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
             onClick={() => setModalOpen(false)}
           ></div>
 
-          <div className="currency-modal relative w-full max-w-md bg-[#1e1b4b] rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-[fadeIn_0.3s_ease-out]">
-            <div className="p-4 border-b border-white/10 bg-white/5">
-              <div className="flex items-center gap-3 bg-black/20 rounded-xl px-4 py-3 border border-white/10 focus-within:border-purple-500 transition-colors">
-                <i className="fa-solid fa-magnifying-glass text-slate-400"></i>
+          <div className="currency-modal relative w-full max-w-md bg-white rounded-3xl border border-[#e2eae3] shadow-2xl overflow-hidden flex flex-col max-h-[82vh] animate-[fadeIn_0.25s_ease-out]">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-[#edf2ee] bg-[#fbfdfb]">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-[#18392b] font-['Manrope'] leading-tight">
+                    Select Currency
+                  </h3>
+                  <p className="text-xs text-[#63786c] mt-0.5">
+                    {modalType === "from" ? "Choose source currency (From)" : "Choose target currency (To)"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="w-8 h-8 rounded-full bg-[#edf3ef] hover:bg-[#e0ebe3] text-[#425e50] flex items-center justify-center transition-colors cursor-pointer"
+                  aria-label="Close modal"
+                >
+                  <i className="fa-solid fa-xmark text-sm"></i>
+                </button>
+              </div>
+
+              {/* Search input */}
+              <div className="flex items-center gap-3 bg-[#f2f6f3] rounded-xl px-3.5 py-2.5 border border-[#dce6df] focus-within:border-[#3d956a] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#3d956a]/15 transition-all">
+                <i className="fa-solid fa-magnifying-glass text-[#688274] text-xs"></i>
                 <input
                   autoFocus
                   type="text"
-                  placeholder="Search (e.g., USD, Euro, India)..."
-                  className="bg-transparent w-full text-white outline-none placeholder-slate-500"
+                  placeholder="Search country, currency, or code (e.g. USD, India, Euro)..."
+                  className="bg-transparent w-full text-[#18392b] text-sm outline-none placeholder-[#82968a]"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-white">
-                  <i className="fa-solid fa-xmark"></i>
-                </button>
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="text-[#82968a] hover:text-[#18392b] text-xs p-1 cursor-pointer"
+                    aria-label="Clear search"
+                  >
+                    <i className="fa-solid fa-circle-xmark"></i>
+                  </button>
+                )}
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
-              {Object.keys(currencyMap)
-                .filter(c =>
-                  c.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  (currencyMap[c] && currencyMap[c].toLowerCase().includes(searchQuery.toLowerCase()))
-                )
-                .map((c) => (
+            {/* Currency List */}
+            <div className="flex-1 overflow-y-auto p-2 sm:p-2.5 space-y-1 custom-scrollbar">
+              {filteredCurrencies.map((c) => {
+                const isSelected = c.code === (modalType === "from" ? from : to);
+                const isOther = c.code === (modalType === "from" ? to : from);
+                return (
                   <button
-                    key={c}
-                    onClick={() => selectCurrency(c)}
-                    className="currency-option flex items-center gap-4 p-3 rounded-xl hover:bg-white/10 cursor-pointer transition-colors border border-transparent hover:border-white/5 w-full text-left"
+                    key={c.code}
+                    onClick={() => selectCurrency(c.code)}
+                    className={`currency-option flex items-center gap-3.5 p-2.5 sm:p-3 rounded-xl cursor-pointer transition-all border w-full text-left ${
+                      isSelected
+                        ? "bg-[#eaf5ee] border-[#b8dfc7]"
+                        : "bg-white border-transparent hover:bg-[#f3f7f4] hover:border-[#e3ece5]"
+                    }`}
                   >
-                    <img src={getFlag(c)} alt={c} className="w-10 h-10 rounded-full object-cover bg-white/10" />
-                    <div className="flex flex-col">
-                      <span className="font-bold text-white text-lg">{c}</span>
-                      <span className="text-xs text-slate-400">Currency</span>
+                    <img
+                      src={getFlag(c.code)}
+                      alt={c.code}
+                      className="w-9 h-9 rounded-full object-cover shadow-sm border border-[#e2eae3] flex-shrink-0 bg-slate-100"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://flagcdn.com/w80/un.png";
+                      }}
+                    />
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-[#18392b] text-base font-['Manrope']">
+                          {c.code}
+                        </span>
+                        <span className="text-xs text-[#526a5d] truncate font-medium">
+                          {c.name}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-[#788e81] truncate">
+                        {c.country}
+                      </span>
                     </div>
-                    {(c === from || c === to) && (
-                      <i className="fa-solid fa-check text-green-400 ml-auto"></i>
+                    {isSelected && (
+                      <span className="text-xs font-semibold text-[#1c6b45] bg-[#d5ede0] px-2.5 py-1 rounded-full flex items-center gap-1 flex-shrink-0">
+                        <i className="fa-solid fa-check text-[10px]" />
+                        Selected
+                      </span>
+                    )}
+                    {!isSelected && isOther && (
+                      <span className="text-[10px] font-medium text-[#7d9386] bg-[#edf2ef] px-2 py-0.5 rounded-full flex-shrink-0">
+                        {modalType === "from" ? "To" : "From"}
+                      </span>
                     )}
                   </button>
-                ))}
+                );
+              })}
 
-              {Object.keys(currencyMap).filter(c => c.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
-                <div className="text-center p-8 text-slate-500">
-                  No currency found
+              {filteredCurrencies.length === 0 && (
+                <div className="text-center py-12 px-4 text-[#758a7e]">
+                  <i className="fa-solid fa-magnifying-glass text-2xl text-[#a4b8ad] mb-2 block"></i>
+                  <p className="font-medium text-[#18392b] text-sm">No currency found</p>
+                  <p className="text-xs text-[#758a7e] mt-1">
+                    Try searching by country name, currency name, or 3-letter code.
+                  </p>
                 </div>
               )}
             </div>
@@ -304,16 +352,20 @@ function FeatureItem({ icon, color, bg, text }) {
 }
 
 function CurrencySelector({ code, flag, onClick, label }) {
+  const info = currencies[code];
   return (
     <button
       onClick={onClick}
-      className="currency-selector relative group cursor-pointer flex flex-col items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-purple-500/30 transition-all active:scale-95"
-      aria-label={`Choose ${label.toLowerCase()} currency, currently ${code}`}
+      className="currency-selector relative group cursor-pointer flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-purple-500/30 transition-all active:scale-95"
+      aria-label={`Choose ${label.toLowerCase()} currency, currently ${code} (${info?.name || code})`}
     >
       <img
         src={flag}
         alt={code}
-        className="w-10 h-10 rounded-full shadow-lg object-cover mb-2 group-hover:scale-110 transition-transform"
+        className="w-10 h-10 rounded-full shadow-lg object-cover mb-2 group-hover:scale-110 transition-transform bg-slate-100"
+        onError={(e) => {
+          e.currentTarget.src = "https://flagcdn.com/w80/un.png";
+        }}
       />
       <div className="flex items-center gap-1">
         <span className="text-xl font-bold text-white">{code}</span>
