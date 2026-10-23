@@ -87,7 +87,6 @@ export default function App() {
     <>
       <Navbar />
 
-      {/* --- MAIN BACKGROUND CONTAINER --- */}
       <div className="app-shell pt-16 sm:pt-20 md:pt-24 min-h-screen flex flex-col text-white">
 
         {/* --- CONTENT WRAPPER --- */}
