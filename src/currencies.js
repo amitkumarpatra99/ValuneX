@@ -1,4 +1,3 @@
-/* Comprehensive list of 166 currencies with country and flag mappings */
 export const currencies = {
   "USD": {
     "name": "United States Dollar",
