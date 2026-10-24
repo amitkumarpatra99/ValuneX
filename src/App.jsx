@@ -92,7 +92,6 @@ export default function App() {
         <div className="flex-1 flex items-center justify-center px-3.5 py-2 sm:px-6 sm:py-6">
           <div className="app-layout w-full max-w-5xl grid grid-cols-1 md:grid-cols-[1fr_420px] gap-6 md:gap-8 relative">
 
-            {/* LEFT / HERO SECTION (2nd on mobile, 1st on desktop) */}
             <div className="hero-panel order-2 md:order-1 p-5 sm:p-8 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col justify-center relative overflow-hidden">
               <div className="hero-glow absolute -top-20 -left-20 w-40 h-40 rounded-full blur-3xl"></div>
               <div className="hero-content">
