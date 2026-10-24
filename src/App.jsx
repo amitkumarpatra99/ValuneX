@@ -89,7 +89,6 @@ export default function App() {
 
       <div className="app-shell pt-16 sm:pt-20 md:pt-24 min-h-screen flex flex-col text-white">
 
-        {/* --- CONTENT WRAPPER --- */}
         <div className="flex-1 flex items-center justify-center px-3.5 py-2 sm:px-6 sm:py-6">
           <div className="app-layout w-full max-w-5xl grid grid-cols-1 md:grid-cols-[1fr_420px] gap-6 md:gap-8 relative">
 
