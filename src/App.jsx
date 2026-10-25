@@ -224,7 +224,7 @@ export default function App() {
           ></div>
 
           <div className="currency-modal relative w-full max-w-md bg-white rounded-3xl border border-[#e2eae3] shadow-2xl overflow-hidden flex flex-col max-h-[82vh] animate-[fadeIn_0.25s_ease-out]">
-            {/* Modal Header */}
+
             <div className="p-4 sm:p-5 border-b border-[#edf2ee] bg-[#fbfdfb]">
               <div className="flex items-center justify-between mb-3">
                 <div>
