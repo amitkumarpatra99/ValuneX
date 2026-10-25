@@ -112,7 +112,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* RIGHT / CONVERTER SECTION (1st on mobile, 2nd on desktop) */}
             <aside className="converter-panel order-1 md:order-2 p-5 sm:p-6 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col gap-5 sm:gap-6 relative z-20">
               
               <div className="flex justify-between items-center border-b border-white/10 pb-4">
